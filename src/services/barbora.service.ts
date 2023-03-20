@@ -1,12 +1,12 @@
-import cheerio from 'cheerio';
+import cheerio from "cheerio";
 
 const processSearchData = async (data: string, config: any): Promise<Product[]> => {
+    const schemaHelper = require('../helpers/schema.helper');
     const $ = cheerio.load(data);
     const productResults = [] as Product[];
     const products = $(config.selectors.productElemSelector);
     products.each((i: number, elem: any) => {
-        const productData = $(elem).data(config.selectors.dataAttr);
-        const productImage = $(elem).find(config.selectors.image).attr('src');
+        const productData = schemaHelper.scrapeMicrodata($(elem));
         const productHref = $(elem).find(config.selectors.url).attr('href');
         let productUrl: string = '';
         if (productHref) {
@@ -15,12 +15,13 @@ const processSearchData = async (data: string, config: any): Promise<Product[]> 
         productResults.push({
             name: productData.name,
             price: productData.price,
-            image: productImage,
+            image: productData.image,
             url: productUrl,
             currency: productData.currency,
-            available: true
+            available: productData.available
         });
     });
+    console.log(productResults);
     return productResults;
 }
 
