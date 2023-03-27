@@ -26,6 +26,14 @@ const processSearchData = async (data: string, config: any): Promise<Product[]> 
     return productResults;
 }
 
+const processSitemapData = async (data: string, selector: string): Promise<string[]> => {
+    const $ = cheerio.load(data, { xmlMode: true });
+    return $(selector)
+        .map((i, url) => $(url).text())
+        .get();
+}
+
 module.exports = {
-    processSearchData
+    processSearchData,
+    processSitemapData
 }

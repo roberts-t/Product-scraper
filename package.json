@@ -15,7 +15,7 @@
     "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "mongoose": "^7.0.1",
+    "mongoose": "^7.0.3",
     "winston": "^3.8.2",
     "winston-mongodb": "^5.1.1"
   },

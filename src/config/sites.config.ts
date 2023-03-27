@@ -17,6 +17,16 @@ const sitesConfig = {
             image: '.card__image-wrapper img',
             url: 'a.card__url'
         },
+        productSitemap: {
+            selector: 'loc',
+            urls: [
+                'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_1.xml',
+                'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_2.xml',
+                'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_3.xml',
+                'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_4.xml',
+                'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_5.xml',
+            ]
+        },
         service: rimiService
     },
     barbora: {
@@ -27,6 +37,12 @@ const sitesConfig = {
             productElemSelector: 'div.b-product--wrap',
             url: '.b-product-wrap-img a.b-product--imagelink',
 
+        },
+        productSitemap: {
+            selector: 'loc:contains("/produkti/")',
+            urls: [
+                'https://www.barbora.lv/sitemap.xml'
+            ],
         },
         service: barboraService
     },
@@ -43,6 +59,13 @@ const sitesConfig = {
             priceData: 'price-amount',
             available: 'span.available-qty',
             availableData: 'qty'
+        },
+        productSitemap: {
+            selector: 'url:has(PageMap) > loc',
+            urls: [
+                'https://nuko.lv/pub/media/sitemap_lv-1-1.xml',
+                'https://nuko.lv/pub/media/sitemap_lv-1-2.xml',
+            ]
         },
         service: nukoService
     },
