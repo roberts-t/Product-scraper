@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import axios from "axios";
-import * as https from "https";
-const crypto = require('crypto');
+import RequestModel from '../models/request.model';
+import { ProductSchema } from '../models/product.model';
+import moment from 'moment';
 const logger = require('../helpers/logger.helper');
 const { sitesConfig, availableSites } = require('../config/sites.config');
+
 
 const getScrapingResults = async (req: Request, res: Response) => {
     const sites = req.body.sites;
@@ -19,33 +20,43 @@ const getScrapingResults = async (req: Request, res: Response) => {
         }
     }
 
+    const cachedRequest = await RequestModel.findOne({
+        query: query.toLowerCase(),
+        createdAt: { $gte: moment().startOf('day').toDate() },
+    });
+
+    if (cachedRequest) {
+        logger.info('Using cached request for query: ' + query);
+        const products = cachedRequest.products;
+        return res.status(200).json(products);
+    }
+
     try {
-        // Iterate through sites
+        let productPromises = [] as Promise<typeof ProductSchema[]>[];
+
         for (const site of sites) {
             const siteConfig = sitesConfig[site];
             const siteService = siteConfig.service;
 
-            const httpsAgent = new https.Agent({
-                secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
-            });
-            // Get scraping results
-            const { data } = await axios.get(siteConfig.getUrl(query), {
-                httpsAgent,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
-                    'Accept': '*/*',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                }
-            });
-            await siteService.processSearchData(data, siteConfig);
+            const ScrapingClient = require('../helpers/request.helper');
+            const { data } = await ScrapingClient.get(siteConfig.getUrl(encodeURIComponent(query)));
+
+            productPromises.push(siteService.processSearchData(data, siteConfig, site));
         }
 
+        const products = (await Promise.all(productPromises)).flat();
+        const request = new RequestModel({
+            products: products,
+            query: query.toLowerCase(),
+            sites: sites
+        });
+        await request.save();
+        return res.status(200).json(products);
     } catch (e) {
         logger.error(e);
-        return res.status(500).json({ errorCode: 'SERVER_ERROR' });
+        return res.sendStatus(500);
 
     }
-    return res.sendStatus(200);
 }
 
 module.exports = {

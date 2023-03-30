@@ -1,6 +1,6 @@
 import cheerio from "cheerio";
 
-const processSearchData = async (data: string, config: any): Promise<Product[]> => {
+const processSearchData = async (data: string, config: any, site: string): Promise<Product[]> => {
     const schemaHelper = require('../helpers/schema.helper');
     const $ = cheerio.load(data);
     const productResults = [] as Product[];
@@ -13,6 +13,7 @@ const processSearchData = async (data: string, config: any): Promise<Product[]> 
             productUrl = new URL(productHref, config.url).toString();
         }
         productResults.push({
+            site: site,
             name: productData.name,
             price: productData.price,
             image: productData.image,
@@ -21,7 +22,6 @@ const processSearchData = async (data: string, config: any): Promise<Product[]> 
             available: productData.available
         });
     });
-    console.log(productResults);
     return productResults;
 }
 

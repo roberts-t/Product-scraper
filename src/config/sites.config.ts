@@ -9,13 +9,19 @@ const availableSites = ['rimi', 'barbora', 'NuKo', 'top', 'lats'];
 const sitesConfig = {
     rimi: {
         name: 'Rimi',
+        logo: '/images/stores/Rimi-logo.png',
         url: 'https://www.rimi.lv/',
-        getUrl: (query: string) => `https://www.rimi.lv/e-veikals/lv/meklesana?page=1&pageSize=20&query=${query}`,
+        getUrl: (query: string) => `https://www.rimi.lv/e-veikals/lv/meklesana?page=1&pageSize=10&query=${query}`,
         selectors: {
             productElemSelector: '.product-grid__item div.card',
             dataAttr: 'gtm-eec-product',
             image: '.card__image-wrapper img',
-            url: 'a.card__url'
+            url: 'a.card__url',
+            priceEur: '.price-tag span',
+            priceCents: '.price-tag div sup',
+            loyaltyPrice: '.card__image-wrapper .price-badge',
+            loyaltyPriceEur: '.price-badge__price > span',
+            loyaltyPriceCents: '.price-badge__price div > span',
         },
         productSitemap: {
             selector: 'loc',
@@ -31,6 +37,7 @@ const sitesConfig = {
     },
     barbora: {
         name: 'Barbora',
+        logo: '/images/stores/Barbora-logo.png',
         url: 'https://www.barbora.lv/',
         getUrl: (query: string) => `https://www.barbora.lv/meklet?q=${query}`,
         selectors: {
@@ -48,8 +55,9 @@ const sitesConfig = {
     },
     NuKo: {
         name: 'NuKo',
+        logo: '/images/stores/NuKo-logo.png',
         url: 'https://www.nuko.lv/lv/',
-        getUrl: (query: string) => `https://nuko.lv/lv/catalogsearch/result/?q=${query}`,
+        getUrl: (query: string) => `https://nuko.lv/lv/catalogsearch/result/index/?product_list_limit=12&q=${query}`,
         selectors: {
             productElemSelector: 'div.product-item-info',
             url: 'a.product-item-photo',
@@ -71,8 +79,9 @@ const sitesConfig = {
     },
     top: {
         name: 'Top',
+        logo: '/images/stores/Top!-logo.png',
         url: 'https://etop.lv/',
-        getUrl: (query: string) => `https://etop.lv/index.php?route=product/search&sort=p.price&order=ASC&search=${query}`,
+        getUrl: (query: string) => `https://etop.lv/index.php?route=product/search&search=${query}&limit=10`,
         selectors: {
             productElemSelector: 'div.product-thumb',
             url: 'div.product-name a',
@@ -85,6 +94,7 @@ const sitesConfig = {
     },
     lats: {
         name: 'Lats',
+        logo: '/images/stores/LaTs-logo.png',
         url: 'https://www.e-latts.lv/',
         getUrl: (query: string) => `https://www.e-latts.lv/${query}.gs?o=sa`,
         selectors: {

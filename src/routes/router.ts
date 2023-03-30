@@ -7,6 +7,6 @@ router.get('/', (req, res) => {
     crawlerController.getProductUrls();
 });
 
-router.get('/test', scrapingController.getScrapingResults);
+router.post('/products', scrapingController.getScrapingResults);
 
 module.exports = router;

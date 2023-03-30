@@ -1,4 +1,5 @@
 type Product = {
+    site?: string;
     name?: string;
     price?: string | number;
     image?: string;
