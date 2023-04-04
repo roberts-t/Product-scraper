@@ -1,10 +1,11 @@
 require('dotenv').config();
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import logger from './src/helpers/logger.helper';
 const mongoose = require('mongoose');
 const routes = require('./src/routes/router');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const scheduleService = require('./src/services/schedule.service');
 
 mongoose.set("strictQuery", false);
@@ -26,6 +27,19 @@ app.use(cors({
 app.use(express.static('public'));
 
 app.use('/api', routes);
+
+// Include ReactJS build
+if (process.env.NODE_ENV != "DEV") {
+    app.use(express.static(path.join(__dirname, '../build')));
+    app.get("*", (req: Request, res: Response) => {
+        res.sendFile(path.join(__dirname, "../build", "index.html"), err => {
+            if (err) {
+                logger.error(`Failed to send index.html: ${err}`);
+                return res.send(500);
+            }
+        });
+    });
+}
 
 app.listen(port, async () => {
     logger.info(`Server is running on PORT ${port}, ENV: ${process.env.NODE_ENV}`);
