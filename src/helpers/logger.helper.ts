@@ -31,28 +31,31 @@ const format = winston.format.combine(
     ),
 );
 
-const transports = [
-    (process.env.NODE_ENV == "DEV") &&
+const devTransports = [
     new winston.transports.Console({
         handleExceptions: true,
     }),
+];
+
+const prodTransports = [
     new winston.transports.File({
         filename: 'logs/error.log',
         level: 'error',
         colorize: false,
         handleExceptions: true,
     }),
-    // new winston.transports.MongoDB({
-    //     db: process.env.MONGO_URI,
-    //     collection: 'logs',
-    //     decolorize: true,
-    //     handleExceptions: true,
-    // }),
-];
+    new winston.transports.MongoDB({
+        db: process.env.MONGO_URI,
+        collection: 'logs',
+        decolorize: true,
+        handleExceptions: true,
+    }),
+]
+
 
 export default winston.createLogger({
     level: level(),
     levels,
     format,
-    transports,
+    transports: process.env.NODE_ENV == "DEV" ? devTransports : prodTransports,
 });
