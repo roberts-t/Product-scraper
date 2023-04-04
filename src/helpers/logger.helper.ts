@@ -50,11 +50,9 @@ const transports = [
     // }),
 ];
 
-const logger = winston.createLogger({
+export default winston.createLogger({
     level: level(),
     levels,
     format,
     transports,
 });
-
-module.exports = logger;

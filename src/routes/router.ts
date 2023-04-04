@@ -1,12 +1,14 @@
 import { Router } from 'express';
 const scrapingController = require('../controllers/scraping.controller');
-const crawlerController = require('../controllers/crawler.controller');
+const accessController = require('../controllers/access.controller');
+const authMiddleware = require('../middlewares/access.middleware');
+const guestMiddleware = require('../middlewares/guest.middleware');
 const router: Router = Router();
 
-router.get('/', (req, res) => {
-    crawlerController.getProductUrls();
-});
+router.post('/products', authMiddleware, scrapingController.getScrapingResults);
 
-router.post('/products', scrapingController.getScrapingResults);
+router.post('/access', guestMiddleware, accessController.getAccess);
+router.post('/access/refresh', authMiddleware, accessController.refreshAccess);
+router.post('/access/logout', authMiddleware, accessController.logout);
 
 module.exports = router;

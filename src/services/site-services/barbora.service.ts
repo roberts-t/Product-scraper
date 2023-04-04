@@ -1,7 +1,7 @@
 import cheerio from "cheerio";
 
 const processSearchData = async (data: string, config: any, site: string): Promise<Product[]> => {
-    const schemaHelper = require('../helpers/schema.helper');
+    const schemaHelper = require('../../helpers/schema.helper');
     const $ = cheerio.load(data);
     const productResults = [] as Product[];
     const products = $(config.selectors.productElemSelector);

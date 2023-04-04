@@ -6,4 +6,10 @@ type Product = {
     url?: string;
     currency?: string;
     available?: boolean;
+    description?: string;
+    brand?: string;
+    country?: string;
+    manufacturer?: string;
+    amount?: string;
+    dealDuration?: string;
 }

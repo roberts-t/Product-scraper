@@ -36,6 +36,30 @@ export const ProductSchema = new Schema<IProduct>({
         type: Boolean,
         required: true,
     },
+    description: {
+        type: String,
+        required: false,
+    },
+    brand: {
+        type: String,
+        required: false,
+    },
+    country: {
+        type: String,
+        required: false,
+    },
+    manufacturer: {
+        type: String,
+        required: false,
+    },
+    amount: {
+        type: String,
+        required: false,
+    },
+    dealDuration: {
+        type: String,
+        required: false,
+    }
 }, { timestamps: true });
 
 export default model<IProduct>('Product', ProductSchema);

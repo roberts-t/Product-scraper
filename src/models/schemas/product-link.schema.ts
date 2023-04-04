@@ -1,10 +1,10 @@
 import { Schema, Types } from 'mongoose';
 
-interface IProductLink {
-    url: string;
+export interface IProductLink {
+    _id?: Types.ObjectId;
+    url?: string;
     scrapedAt?: Date;
     scrapingFailed?: boolean;
-    scrapingTries?: number;
     product?: Types.ObjectId;
 }
 
@@ -23,14 +23,9 @@ export default new Schema<IProductLink>({
         required: true,
         default: false,
     },
-    scrapingTries: {
-        type: Number,
-        required: true,
-        default: 0,
-    },
     product: {
         type: Types.ObjectId,
-        required: false,
         ref: 'Product',
+        required: false,
     }
 }, { timestamps: true });

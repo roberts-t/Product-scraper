@@ -1,10 +1,12 @@
-const rimiService = require('../services/rimi.service');
-const barboraService = require('../services/barbora.service');
-const nukoService = require('../services/nuko.service');
-const topService = require('../services/top.service');
-const latsService = require('../services/lats.service');
+const rimiService = require('../services/site-services/rimi.service');
+const barboraService = require('../services/site-services/barbora.service');
+const nukoService = require('../services/site-services/nuko.service');
+const topService = require('../services/site-services/top.service');
+const latsService = require('../services/site-services/lats.service');
+const lidlService = require('../services/site-services/lidl.service');
 
-const availableSites = ['rimi', 'barbora', 'NuKo', 'top', 'lats'];
+const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats'];
+const crawlSites = ['rimi', 'nuko', 'lidl'];
 
 const sitesConfig = {
     rimi: {
@@ -22,9 +24,27 @@ const sitesConfig = {
             loyaltyPrice: '.card__image-wrapper .price-badge',
             loyaltyPriceEur: '.price-badge__price > span',
             loyaltyPriceCents: '.price-badge__price div > span',
+            available: '.card__similar-btn',
+        },
+        selectorsSingle: {
+            productElem: '.cart-layout__main',
+            name: 'h3.name',
+            image: '.product__main-image img',
+            priceEur: '.price-wrapper span',
+            priceCents: '.price-wrapper div sup',
+            loyaltyPrice: '.product__main-image .price-badge',
+            loyaltyPriceEur: '.price-badge__price > span',
+            loyaltyPriceCents: '.price-badge__price div > span',
+            available: 'button.card__similar-btn',
+            // country: '.product-details li.item span:contains("Izcelsmes valsts") + p',
+            // brand: '.product-details li.item span:contains("Zīmols") + p',
+            // amount: '.product-details li.item span:contains("Daudzums") + p',
+            // dealDuration: '.price-wrapper p.notice',
+            manufacturer: '.other-from-brand .link-button',
         },
         productSitemap: {
             selector: 'loc',
+            schedule: '1 0 * * 2',
             urls: [
                 'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_1.xml',
                 'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_2.xml',
@@ -45,15 +65,15 @@ const sitesConfig = {
             url: '.b-product-wrap-img a.b-product--imagelink',
 
         },
-        productSitemap: {
-            selector: 'loc:contains("/produkti/")',
-            urls: [
-                'https://www.barbora.lv/sitemap.xml'
-            ],
-        },
+        // productSitemap: {
+        //     selector: 'loc:contains("/produkti/")',
+        //     urls: [
+        //         'https://www.barbora.lv/sitemap.xml'
+        //     ],
+        // },
         service: barboraService
     },
-    NuKo: {
+    nuko: {
         name: 'NuKo',
         logo: '/images/stores/NuKo-logo.png',
         url: 'https://www.nuko.lv/lv/',
@@ -68,8 +88,21 @@ const sitesConfig = {
             available: 'span.available-qty',
             availableData: 'qty'
         },
+        selectorsSingle: {
+            productElem: '.column.main',
+            image: 'img.gallery-placeholder__image',
+            available: 'span.available-qty',
+            availableData: 'qty',
+            description: '.product.description .value',
+            manufacturer: '.additional-attributes th.label:contains("Ražotājs") + td.data',
+            country: '.additional-attributes th.label:contains("Izcelsmes valsts") + td.data',
+            brand: '.additional-attributes th.label:contains("Zīmols") + td.data',
+            packageSize: '.additional-attributes th.label:contains("Iepakojuma lielums") + td.data',
+            packageUnit: '.additional-attributes th.label:contains("Mērvienība") + td.data',
+        },
         productSitemap: {
             selector: 'url:has(PageMap) > loc',
+            schedule: '1 0 * * 1,4',
             urls: [
                 'https://nuko.lv/pub/media/sitemap_lv-1-1.xml',
                 'https://nuko.lv/pub/media/sitemap_lv-1-2.xml',
@@ -78,7 +111,7 @@ const sitesConfig = {
         service: nukoService
     },
     top: {
-        name: 'Top',
+        name: 'Top!',
         logo: '/images/stores/Top!-logo.png',
         url: 'https://etop.lv/',
         getUrl: (query: string) => `https://etop.lv/index.php?route=product/search&search=${query}&limit=10`,
@@ -93,7 +126,7 @@ const sitesConfig = {
         service: topService
     },
     lats: {
-        name: 'Lats',
+        name: 'LaTs',
         logo: '/images/stores/LaTs-logo.png',
         url: 'https://www.e-latts.lv/',
         getUrl: (query: string) => `https://www.e-latts.lv/${query}.gs?o=sa`,
@@ -106,10 +139,35 @@ const sitesConfig = {
             priceAttr: '-price',
         },
         service: latsService
+    },
+    lidl: {
+        name: 'Lidl',
+        logo: '/images/stores/Lidl-logo.png',
+        url: 'https://www.lidl.lv/',
+        selectorsSingle: {
+            productElem: 'div.page__section',
+            name: 'h1[itemprop="name"]',
+            brand: 'p[itemprop="description"]',
+            price: '.pricebox__price',
+            amount: '.pricebox__basic-quantity',
+            dealDuration: '.ribbon .ribbon__text',
+            description: '.attributebox__long-description p',
+            image: '.picture source',
+            imageData: 'srcset',
+        },
+        service: lidlService,
+        productSitemap: {
+            schedule: '1 0 * * 5',
+            selector: 'loc:contains("/p/")',
+            urls: [
+                'https://www.lidl.lv/lv/sitemap-lv-LV.xml'
+            ]
+        }
     }
 }
 
 module.exports = {
     availableSites,
-    sitesConfig
+    sitesConfig,
+    crawlSites,
 };

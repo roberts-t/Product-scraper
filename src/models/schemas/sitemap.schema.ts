@@ -1,10 +1,10 @@
 import { Schema } from 'mongoose';
-import ProductLinkSchema from './product-link.schema';
+import ProductLinkSchema, { IProductLink } from './product-link.schema';
 
-interface ISitemap {
+export interface ISitemap {
     url: string;
-    productLinks: [typeof ProductLinkSchema];
-    scrapingDone: boolean;
+    productLinks?: IProductLink[];
+    scrapingDone?: boolean;
 }
 
 export default new Schema<ISitemap>({
@@ -15,6 +15,7 @@ export default new Schema<ISitemap>({
     productLinks: {
         type: [ProductLinkSchema],
         required: true,
+        default: [],
     },
     scrapingDone: {
         type: Boolean,
@@ -22,3 +23,4 @@ export default new Schema<ISitemap>({
         default: false,
     }
 });
+

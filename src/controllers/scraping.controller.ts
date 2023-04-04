@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import RequestModel from '../models/request.model';
 import { ProductSchema } from '../models/product.model';
 import moment from 'moment';
-const logger = require('../helpers/logger.helper');
+import logger from '../helpers/logger.helper';
 const { sitesConfig, availableSites } = require('../config/sites.config');
 
 
@@ -35,6 +35,7 @@ const getScrapingResults = async (req: Request, res: Response) => {
         let productPromises = [] as Promise<typeof ProductSchema[]>[];
 
         for (const site of sites) {
+            logger.info('Scraping ' + site + ' for query: ' + query);
             const siteConfig = sitesConfig[site];
             const siteService = siteConfig.service;
 
