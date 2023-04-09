@@ -4,9 +4,10 @@ const nukoService = require('../services/site-services/nuko.service');
 const topService = require('../services/site-services/top.service');
 const latsService = require('../services/site-services/lats.service');
 const lidlService = require('../services/site-services/lidl.service');
+const pienaveikalsService = require('../services/site-services/pienaveikals.service');
 
-const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats'];
-const crawlSites = ['rimi', 'nuko', 'lidl'];
+const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats', 'pienaveikals'];
+const crawlSites = ['rimi', 'nuko', 'lidl', 'pienaveikals'];
 
 const sitesConfig = {
     rimi: {
@@ -157,12 +158,44 @@ const sitesConfig = {
         },
         service: lidlService,
         productSitemap: {
-            schedule: '1 0 * * 5',
+            schedule: '1 0 * * 1,4',
             selector: 'loc:contains("/p/")',
             urls: [
                 'https://www.lidl.lv/lv/sitemap-lv-LV.xml'
             ]
         }
+    },
+    pienaveikals: {
+        name: 'Piena veikals',
+        url: 'https://pienaveikals.lv/',
+        getUrl: (query: string) => `https://pienaveikals.lv/index.php?route=product/search&search=${query}`,
+        selectors: {
+            productElemSelector: '.product-layout div.product-thumb',
+            image: 'div.image img',
+            name: 'div.caption h4 a',
+            priceSale: 'div.caption p.price > span',
+            price: 'div.caption p.price',
+            url: 'div.caption h4 a',
+            description: 'div.caption p.desc',
+        },
+        selectorsSingle: {
+            productElem: '.productpage',
+            name: 'h2.product-title',
+            price: 'ul.price h2',
+            image: '.image img',
+            manufacturer: 'li.manufacturer a',
+            available: 'div#product .btn-danger',
+            dealDuration: '.model:contains("Akcija spēkā")',
+            amount: '.tab-pane dt:contains("Svars") + dd',
+        },
+        productSitemap: {
+            schedule: '1 0 * * 1,5',
+            selector: 'loc:contains("product&product_id")',
+            urls: [
+                'https://pienaveikals.lv/index.php?route=extension/feed/google_sitemap'
+            ]
+        },
+        service: pienaveikalsService
     }
 }
 

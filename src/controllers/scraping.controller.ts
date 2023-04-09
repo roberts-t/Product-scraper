@@ -35,14 +35,17 @@ const getScrapingResults = async (req: Request, res: Response) => {
         let productPromises = [] as Promise<typeof ProductSchema[]>[];
 
         for (const site of sites) {
-            logger.info('Scraping ' + site + ' for query: ' + query);
             const siteConfig = sitesConfig[site];
             const siteService = siteConfig.service;
 
             const ScrapingClient = require('../helpers/request.helper');
-            const { data } = await ScrapingClient.get(siteConfig.getUrl(encodeURIComponent(query)));
-
-            productPromises.push(siteService.processSearchData(data, siteConfig, site));
+            const productPromise = new Promise<typeof ProductSchema[]>(async (resolve) => {
+                logger.info('Scraping ' + site + ' for query: ' + query);
+                const { data } = await ScrapingClient.get(siteConfig.getUrl(encodeURIComponent(query)));
+                const productsData = await siteService.processSearchData(data, siteConfig, site);
+                resolve(productsData);
+            });
+            productPromises.push(productPromise);
         }
 
         const products = (await Promise.all(productPromises)).flat();

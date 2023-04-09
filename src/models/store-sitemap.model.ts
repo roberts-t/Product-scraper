@@ -1,10 +1,10 @@
-import ProductLinkSchema, { IProductLink } from './schemas/product-link.schema';
 import { model, Schema } from 'mongoose';
 
-interface IStoreSitemap {
+export interface IStoreSitemap {
     site: string;
-    productLinks: IProductLink[];
     scrapingDone?: boolean;
+    totalProducts?: number;
+    notScrapedProductsLeft?: number;
     expireAt?: Date;
     scrapingFinishedAt?: Date;
 }
@@ -15,11 +15,6 @@ const StoreSitemapSchema = new Schema<IStoreSitemap>({
         required: true,
         index: true,
     },
-    productLinks: {
-        type: [ProductLinkSchema],
-        required: true,
-        default: [],
-    },
     scrapingDone: {
         type: Boolean,
         required: true,
@@ -29,11 +24,19 @@ const StoreSitemapSchema = new Schema<IStoreSitemap>({
         type: Date,
         required: false,
     },
+    totalProducts: {
+        type: Number,
+        required: true,
+    },
+    notScrapedProductsLeft: {
+        type: Number,
+        required: true,
+    },
     expireAt: {
         type: Date,
         expires: '8d',
         default: new Date(),
     }
-});
+}, { timestamps: true });
 
 export default model<IStoreSitemap>('StoreSitemap', StoreSitemapSchema);

@@ -49,6 +49,8 @@ const prodTransports = [
         collection: 'logs',
         decolorize: true,
         handleExceptions: true,
+        // Expire logs after 3 days
+        expireAfterSeconds: 3 * 24 * 60 * 60,
     }),
 ]
 

@@ -1,9 +1,10 @@
 import logger from '../helpers/logger.helper';
-import StoreSitemap from '../models/store-sitemap.model';
-import { AxiosResponse } from 'axios';
+import StoreSitemap, { IStoreSitemap } from '../models/store-sitemap.model';
+import { AxiosError, AxiosResponse } from 'axios';
 import StoreSitemapModel from '../models/store-sitemap.model';
 import ProductModel from '../models/product.model';
-import { Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
+import ProductLinkModel, { IProductLink } from '../models/product-link.model';
 
 const MAX_TRIES = 3;
 const { crawlSites, sitesConfig } = require('../config/sites.config');
@@ -51,18 +52,24 @@ const scrapeProducts = async (siteKeys: string[]): Promise<void> => {
         const siteObj = sitesConfig[siteKey];
         const sitePromise = new Promise<void>(async (resolve) => {
             let allProductsFinished = false;
-            while (!allProductsFinished) {
-                const storeSitemap = await StoreSitemapModel.findOne(
-                    { site: siteKey, scrapingDone: false, productLinks: { $elemMatch: { scrapingFailed: false, product: undefined } } },
-                    { 'productLinks.$': 1 }
-                );
-                if (!storeSitemap) {
+            const storeSitemap = await StoreSitemapModel.findOne({ site: siteKey, scrapingDone: false });
+            if (!storeSitemap) {
+                logger.info(`Finished scraping products for ${siteObj.name}`);
+                allProductsFinished = true;
+            }
+            while (!allProductsFinished && storeSitemap) {
+                const notScrapedProduct = await ProductLinkModel.findOne({ storeSitemap: storeSitemap?._id, scrapingFailed: false, product: undefined });
+                if (!notScrapedProduct) {
                     logger.info(`Finished scraping products for ${siteObj.name}`);
                     allProductsFinished = true;
                     await StoreSitemapModel.updateOne({ site: siteKey }, { $set: { finishedScraping: true, scrapingFinishedAt: new Date() } });
                 } else {
-                    await scrapeProduct(storeSitemap.productLinks[0].url, siteObj, storeSitemap._id, storeSitemap.productLinks[0]._id as Types.ObjectId);
+                    await scrapeProduct(notScrapedProduct, storeSitemap, siteObj);
                 }
+            }
+            if (storeSitemap) {
+                storeSitemap.scrapingDone = true;
+                await storeSitemap.save();
             }
             resolve();
         });
@@ -70,7 +77,8 @@ const scrapeProducts = async (siteKeys: string[]): Promise<void> => {
     }
 }
 
-const scrapeProduct = async (url: string | undefined, siteObj: any, storeSitemapId: Types.ObjectId, productLinkId: Types.ObjectId): Promise<void> => {
+const scrapeProduct = async (productLink: HydratedDocument<IProductLink>, storeSitemap: HydratedDocument<IStoreSitemap>, siteObj: any): Promise<void> => {
+    const url = productLink.url;
     if (!url) return;
     const response = await tryRequest(url);
     const data = response?.data;
@@ -79,35 +87,38 @@ const scrapeProduct = async (url: string | undefined, siteObj: any, storeSitemap
     try {
         if (!data) {
             logger.error(`Failed to get product data from ${url}`);
-            await failScrapingAttempt(storeSitemapId, productLinkId);
+            productLink.scrapingFailed = true;
         } else {
-            const product = await siteObj.service.processProductData(data, siteObj, siteObj.name, url);
-            if (!product) {
+            const productData = await siteObj.service.processProductData(data, siteObj, siteObj.name, url);
+            if (!productData) {
                 logger.error(`Failed to process product data from ${url}`);
-                await failScrapingAttempt(storeSitemapId, productLinkId);
+                productLink.scrapingFailed = true;
             } else {
-                const newProduct = new ProductModel(product);
+                const newProduct = new ProductModel(productData);
                 await newProduct.save();
 
-                await StoreSitemapModel.updateOne(
-                    {_id: storeSitemapId, 'productLinks._id': productLinkId},
-                    {$set: {'productLinks.$.product': newProduct._id, 'productLinks.$.scrapedAt': new Date()}}
-                );
-                logger.info(`Scraped product ${product.name} from ${url}`);
+                productLink.product = newProduct._id;
+                productLink.scrapedAt = new Date();
+                logger.info(`Scraped product ${productData.name} from ${url}`);
             }
+        }
+        await productLink.save();
+        if (storeSitemap.notScrapedProductsLeft) {
+            storeSitemap.notScrapedProductsLeft--;
+            await storeSitemap.save();
         }
     } catch (error) {
         logger.error(error + ' - ' + url);
-        await failScrapingAttempt(storeSitemapId, productLinkId);
+        productLink.scrapingFailed = true;
     }
-    await requestDelayPromise;
-}
 
-async function failScrapingAttempt(storeSitemapId: Types.ObjectId, productLinkId: Types.ObjectId) {
-    await StoreSitemapModel.updateOne(
-        {_id: storeSitemapId, 'productLinks._id': productLinkId},
-        {$set: {'productLinks.$.scrapingFailed': true}}
-    );
+    try {
+        await productLink.save();
+    } catch (error) {
+        logger.error(error);
+    }
+
+    await requestDelayPromise;
 }
 
 async function scrapeSitemaps(urls: string[], siteKey: string, selector: string): Promise<void> {
@@ -128,7 +139,16 @@ async function scrapeSitemaps(urls: string[], siteKey: string, selector: string)
                     continue;
                 }
                 const productUrls: string[] = await site.service.processSitemapData(data, selector);
-                productUrls.forEach(url => storeSitemap.productLinks.push({url: url}));
+                const productLinks = [] as IProductLink[];
+                for (const url of productUrls) {
+                    const newProductLink = new ProductLinkModel({
+                        url,
+                        storeSitemap: storeSitemap._id
+
+                    });
+                    productLinks.push(newProductLink);
+                }
+                await ProductLinkModel.insertMany(productLinks);
 
                 allProductUrls = allProductUrls.concat(productUrls);
                 await requestDelayPromise;
@@ -138,6 +158,8 @@ async function scrapeSitemaps(urls: string[], siteKey: string, selector: string)
         }
     }
     logger.info(`Found ${allProductUrls.length} product urls for ${siteKey} in ${urls.length} sitemaps`)
+    storeSitemap.totalProducts = allProductUrls.length;
+    storeSitemap.notScrapedProductsLeft = allProductUrls.length;
     await storeSitemap.save();
 }
 
@@ -156,9 +178,15 @@ const tryRequest = async (url: string): Promise<any> => {
             res = await ScrapingClient.get(url);
             success = true;
         } catch (error) {
-            logger.warn(`Failed to get data from ${url} - try ${tries + 1} of ${MAX_TRIES}, error: ${error}`);
-            tries++;
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            const err = error as AxiosError
+            if (err?.response?.status === 404) {
+                logger.warn(`404 error for ${url}`);
+                success = true;
+            } else {
+                logger.warn(`Failed to get data from ${url} - try ${tries + 1} of ${MAX_TRIES}, error: ${error}`);
+                tries++;
+            }
+            await new Promise(resolve => setTimeout(resolve, 4000));
         }
     }
     return res;

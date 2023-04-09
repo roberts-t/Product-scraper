@@ -1,4 +1,4 @@
-import { Schema, Types } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 export interface IProductLink {
     _id?: Types.ObjectId;
@@ -6,13 +6,14 @@ export interface IProductLink {
     scrapedAt?: Date;
     scrapingFailed?: boolean;
     product?: Types.ObjectId;
+    storeSitemap?: Types.ObjectId;
+    expireAt?: Date;
 }
 
-export default new Schema<IProductLink>({
+const ProductLinkSchema = new Schema<IProductLink>({
     url: {
         type: String,
         required: true,
-        index: true,
     },
     scrapedAt: {
         type: Date,
@@ -27,5 +28,17 @@ export default new Schema<IProductLink>({
         type: Types.ObjectId,
         ref: 'Product',
         required: false,
+    },
+    storeSitemap: {
+        type: Types.ObjectId,
+        ref: 'StoreSitemap',
+        required: true,
+    },
+    expireAt: {
+        type: Date,
+        expires: '8d',
+        default: new Date(),
     }
-}, { timestamps: true });
+});
+
+export default model<IProductLink>('ProductLink', ProductLinkSchema);
