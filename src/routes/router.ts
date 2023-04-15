@@ -8,7 +8,7 @@ const router: Router = Router();
 router.post('/products', authMiddleware, scrapingController.getScrapingResults);
 
 router.post('/access', guestMiddleware, accessController.getAccess);
-router.post('/access/refresh', authMiddleware, accessController.refreshAccess);
+router.post('/access/refresh', accessController.refreshAccess);
 router.post('/access/logout', authMiddleware, accessController.logout);
 
 module.exports = router;

@@ -20,7 +20,7 @@ const getAccess = async (req: any, res: any): Promise<void> => {
                 const jwt_token = jwt.sign(
                     {id: availableAccessToken._id},
                     process.env.SECRET_TOKEN,
-                    { expiresIn: '7d' }
+                    { expiresIn: '10m' }
                 );
                 const refreshToken = jwt.sign(
                     {id: availableAccessToken._id},
@@ -32,7 +32,6 @@ const getAccess = async (req: any, res: any): Promise<void> => {
                 res.cookie('refreshToken', refreshToken, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'PROD',
-                    // sameSite: 'none',
                 });
                 return res.status(200).json({ token: jwt_token });
             }
@@ -61,7 +60,7 @@ const refreshAccess = async (req: any, res: any): Promise<void> => {
         const accessToken = jwt.sign(
             {id: decoded.id},
             process.env.SECRET_TOKEN,
-            { expiresIn: '7d' }
+            { expiresIn: '10m' }
         );
         return res.status(200).json({ token: accessToken });
     } catch (e) {
