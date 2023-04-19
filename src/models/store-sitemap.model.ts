@@ -5,7 +5,6 @@ export interface IStoreSitemap {
     scrapingDone?: boolean;
     totalProducts?: number;
     notScrapedProductsLeft?: number;
-    expireAt?: Date;
     scrapingFinishedAt?: Date;
 }
 
@@ -31,11 +30,6 @@ const StoreSitemapSchema = new Schema<IStoreSitemap>({
     notScrapedProductsLeft: {
         type: Number,
         required: true,
-    },
-    expireAt: {
-        type: Date,
-        expires: '8d',
-        default: new Date(),
     }
 }, { timestamps: true });
 
