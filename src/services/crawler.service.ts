@@ -80,9 +80,9 @@ const scrapeProducts = async (siteKeys: string[]): Promise<void> => {
 const scrapeProduct = async (productLink: HydratedDocument<IProductLink>, storeSitemap: HydratedDocument<IStoreSitemap>, siteObj: any): Promise<void> => {
     const url = productLink.url;
     if (!url) return;
+    const requestDelayPromise = new Promise(resolve => setTimeout(resolve, 4000));
     const response = await tryRequest(url);
     const data = response?.data;
-    const requestDelayPromise = new Promise(resolve => setTimeout(resolve, 5000));
 
     try {
         if (!data) {
@@ -95,6 +95,7 @@ const scrapeProduct = async (productLink: HydratedDocument<IProductLink>, storeS
                 productLink.scrapingFailed = true;
             } else {
                 const newProduct = new ProductModel(productData);
+                newProduct.sitemap = storeSitemap._id;
                 await newProduct.save();
 
                 productLink.product = newProduct._id;

@@ -1,6 +1,7 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 export interface IStoreSitemap {
+    _id?: Types.ObjectId;
     site: string;
     scrapingDone?: boolean;
     totalProducts?: number;

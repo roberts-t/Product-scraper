@@ -1,7 +1,8 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 interface IProduct extends Product {
     site: string;
+    sitemap?: Types.ObjectId;
 }
 
 export const ProductSchema = new Schema<IProduct>({
@@ -58,6 +59,11 @@ export const ProductSchema = new Schema<IProduct>({
     },
     dealDuration: {
         type: String,
+        required: false,
+    },
+    sitemap: {
+        type: Types.ObjectId,
+        ref: 'StoreSitemap',
         required: false,
     }
 }, { timestamps: true });

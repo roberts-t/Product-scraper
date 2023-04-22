@@ -5,9 +5,11 @@ const topService = require('../services/site-services/top.service');
 const latsService = require('../services/site-services/lats.service');
 const lidlService = require('../services/site-services/lidl.service');
 const pienaveikalsService = require('../services/site-services/pienaveikals.service');
+const elviService = require('../services/site-services/elvi.service');
+const oveikalsService = require('../services/site-services/oveikals.service');
 
-const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats', 'pienaveikals'];
-const crawlSites = ['rimi', 'nuko', 'lidl', 'pienaveikals'];
+const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats', 'pienaveikals', 'orkla'];
+const crawlSites = ['rimi', 'nuko', 'lidl', 'pienaveikals', 'elvi'];
 
 const sitesConfig = {
     rimi: {
@@ -45,7 +47,7 @@ const sitesConfig = {
         },
         productSitemap: {
             selector: 'loc',
-            schedule: '1 0 * * 2',
+            schedule: '1 0 * * 2,6',
             urls: [
                 'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_1.xml',
                 'https://www.rimi.lv/e-veikals/sitemaps/products/siteMap_rimiLvSite_Product_lv_2.xml',
@@ -158,7 +160,7 @@ const sitesConfig = {
         },
         service: lidlService,
         productSitemap: {
-            schedule: '1 0 * * 1,4',
+            schedule: '1 0 * * 1,4,6',
             selector: 'loc:contains("/p/")',
             urls: [
                 'https://www.lidl.lv/lv/sitemap-lv-LV.xml'
@@ -196,6 +198,55 @@ const sitesConfig = {
             ]
         },
         service: pienaveikalsService
+    },
+    elvi: {
+        name: 'Elvi',
+        url: 'https://www.elvi.lv/',
+        selectorsSingle: {
+            productElem: '.single-product-container',
+            name: '.title h1',
+            amount: '.title span',
+            available: 'div.price .discount',
+            price: '.price p',
+            dealDuration: '.period .dates span',
+            image: '.product-pic-wrapper img',
+            imageData: 'src'
+        },
+        service: elviService,
+        productSitemap: {
+            schedule: '1 10 * * 1,4',
+            selector: 'loc:contains("/produkti/")',
+            urls: [
+                'https://elvi.lv/sitemap.xml',
+            ]
+        }
+    },
+    orkla: {
+        name: 'Orkla',
+        url: 'https://oveikals.lv/',
+        getUrl: (query: string) => `https://oveikals.lv/?s=${query}&post_type=product&dgwt_wcas=1&lang=lv`,
+        selectors: {
+            productElemSelector: '.products li.product',
+            image: 'img[srcset]',
+            name: 'h2.woocommerce-loop-product__title',
+            price: '.woocommerce-Price-amount bdi',
+            url: 'a.woocommerce-LoopProduct-link',
+        },
+        service: oveikalsService,
+        // selectorsSingle: {
+        //     productElem: '.single-product',
+        //     name: '.title-holder h1',
+        //     price: '.price .woocommerce-Price-amount bdi',
+        //     image: '.woocommerce-product-gallery img',
+        //     manufacturer: '.product_meta .tagged_as a',
+        //     description: '.apraksta-ietvars p:nth-child(1)',
+        //     country: '.apraksta-ietvars p:last-child',
+        //     available: '.in-stock',
+        // },
+        // productSitemap: {
+        //     schedule: '1 0 * * 2,6',
+        //     selector: 'loc:contains("/produkti/")',
+        // }
     }
 }
 
