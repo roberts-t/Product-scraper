@@ -4,4 +4,5 @@ type ProductMicrodata = {
     image?: string;
     currency?: string;
     available?: boolean;
+    description?: string;
 }

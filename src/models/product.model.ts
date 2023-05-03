@@ -1,6 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 
-interface IProduct extends Product {
+export interface IProduct extends Product {
     site: string;
     sitemap?: Types.ObjectId;
 }

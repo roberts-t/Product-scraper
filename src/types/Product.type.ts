@@ -1,5 +1,8 @@
 type Product = {
     site?: string;
+    siteName?: string;
+    siteUrl?: string;
+    siteLogo?: string;
     name?: string;
     price?: string | number;
     image?: string;

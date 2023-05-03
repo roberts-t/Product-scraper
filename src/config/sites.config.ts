@@ -8,14 +8,15 @@ const pienaveikalsService = require('../services/site-services/pienaveikals.serv
 const elviService = require('../services/site-services/elvi.service');
 const oveikalsService = require('../services/site-services/oveikals.service');
 
-const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats', 'pienaveikals', 'orkla'];
-const crawlSites = ['rimi', 'nuko', 'lidl', 'pienaveikals', 'elvi'];
+const availableSites = ['rimi', 'barbora', 'nuko', 'top', 'lats', 'pienaveikals', 'orkla', 'lidl', 'elvi'];
+const crawlSites = ['rimi', 'nuko', 'lidl', 'pienaveikals', 'elvi', 'barbora'];
 
 const sitesConfig = {
     rimi: {
         name: 'Rimi',
-        logo: '/images/stores/Rimi-logo.png',
-        url: 'https://www.rimi.lv/',
+        urlName: 'Rimi.lv',
+        logo: 'rimi.png',
+        url: 'https://www.rimi.lv/e-veikals/lv',
         getUrl: (query: string) => `https://www.rimi.lv/e-veikals/lv/meklesana?page=1&pageSize=10&query=${query}`,
         selectors: {
             productElemSelector: '.product-grid__item div.card',
@@ -60,25 +61,34 @@ const sitesConfig = {
     },
     barbora: {
         name: 'Barbora',
-        logo: '/images/stores/Barbora-logo.png',
+        urlName: 'Barbora.lv',
+        logo: 'barbora.png',
         url: 'https://www.barbora.lv/',
         getUrl: (query: string) => `https://www.barbora.lv/meklet?q=${query}`,
         selectors: {
             productElemSelector: 'div.b-product--wrap',
             url: '.b-product-wrap-img a.b-product--imagelink',
-
         },
-        // productSitemap: {
-        //     selector: 'loc:contains("/produkti/")',
-        //     urls: [
-        //         'https://www.barbora.lv/sitemap.xml'
-        //     ],
-        // },
+        selectorsSingle: {
+            productElem: '.b-page-container',
+            brand: '.b-product-info--info1 dt:contains("Zīmols") + dd',
+            country: '.b-product-info--info1 dt:contains("Izcelsmes valsts") + dd',
+            manufacturer: '.b-product-info--info-3-title:contains("Ražotājs") + dd',
+            dealDuration: '.b-product-info--offer-valid-to',
+        },
+        productSitemap: {
+            selector: 'loc:contains("/produkti/")',
+            schedule: '1 0 * * 2,6',
+            urls: [
+                'https://www.barbora.lv/sitemap.xml'
+            ],
+        },
         service: barboraService
     },
     nuko: {
         name: 'NuKo',
-        logo: '/images/stores/NuKo-logo.png',
+        urlName: 'NuKo.lv',
+        logo: 'nuko.png',
         url: 'https://www.nuko.lv/lv/',
         getUrl: (query: string) => `https://nuko.lv/lv/catalogsearch/result/index/?product_list_limit=12&q=${query}`,
         selectors: {
@@ -115,7 +125,8 @@ const sitesConfig = {
     },
     top: {
         name: 'Top!',
-        logo: '/images/stores/Top!-logo.png',
+        urlName: 'eTop.lv',
+        logo: 'top.png',
         url: 'https://etop.lv/',
         getUrl: (query: string) => `https://etop.lv/index.php?route=product/search&search=${query}&limit=10`,
         selectors: {
@@ -130,8 +141,9 @@ const sitesConfig = {
     },
     lats: {
         name: 'LaTs',
-        logo: '/images/stores/LaTs-logo.png',
-        url: 'https://www.e-latts.lv/',
+        urlName: 'e-latts.lv',
+        logo: 'lats.png',
+        url: 'https://www.e-latts.lv/?start',
         getUrl: (query: string) => `https://www.e-latts.lv/${query}.gs?o=sa`,
         selectors: {
             productElemSelector: 'div.-oProduct',
@@ -145,7 +157,8 @@ const sitesConfig = {
     },
     lidl: {
         name: 'Lidl',
-        logo: '/images/stores/Lidl-logo.png',
+        urlName: 'Lidl.lv',
+        logo: 'lidl.png',
         url: 'https://www.lidl.lv/',
         selectorsSingle: {
             productElem: 'div.page__section',
@@ -169,6 +182,8 @@ const sitesConfig = {
     },
     pienaveikals: {
         name: 'Piena veikals',
+        urlName: 'PienaVeikals.lv',
+        logo: 'pienaveikals.png',
         url: 'https://pienaveikals.lv/',
         getUrl: (query: string) => `https://pienaveikals.lv/index.php?route=product/search&search=${query}`,
         selectors: {
@@ -201,6 +216,8 @@ const sitesConfig = {
     },
     elvi: {
         name: 'Elvi',
+        urlName: 'Elvi.lv',
+        logo: 'elvi.png',
         url: 'https://www.elvi.lv/',
         selectorsSingle: {
             productElem: '.single-product-container',
@@ -223,6 +240,8 @@ const sitesConfig = {
     },
     orkla: {
         name: 'Orkla',
+        urlName: 'Oveikals.lv',
+        logo: 'orkla.png',
         url: 'https://oveikals.lv/',
         getUrl: (query: string) => `https://oveikals.lv/?s=${query}&post_type=product&dgwt_wcas=1&lang=lv`,
         selectors: {

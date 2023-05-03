@@ -2,6 +2,7 @@ import { Schema, model } from 'mongoose';
 
 interface IAccessToken {
     token: string;
+    isAdmin: boolean;
 }
 
 const AccessTokenSchema = new Schema<IAccessToken>({
@@ -9,6 +10,11 @@ const AccessTokenSchema = new Schema<IAccessToken>({
         type: String,
         required: true,
         unique: true,
+    },
+    isAdmin: {
+        type: Boolean,
+        required: false,
+        default: false,
     }
 });
 

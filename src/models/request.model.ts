@@ -1,9 +1,8 @@
 import { Schema, model } from 'mongoose';
-import { ProductSchema } from './product.model';
 
 interface IRequest {
     query: string;
-    products: [typeof ProductSchema];
+    products: Schema.Types.Mixed;
     sites: [string];
 }
 
@@ -18,7 +17,7 @@ const RequestSchema = new Schema<IRequest>({
         required: true,
     },
     products: {
-        type: [ProductSchema],
+        type: Schema.Types.Mixed,
         required: true,
     }
 }, { timestamps: true });

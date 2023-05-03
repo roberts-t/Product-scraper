@@ -1,30 +1,30 @@
 import logger from '../helpers/logger.helper';
-import StoreSitemap, { IStoreSitemap } from '../models/store-sitemap.model';
+import StoreSitemap from '../models/store-sitemap.model';
+import StoreSitemapModel, { IStoreSitemap } from '../models/store-sitemap.model';
 import { AxiosError, AxiosResponse } from 'axios';
-import StoreSitemapModel from '../models/store-sitemap.model';
 import ProductModel from '../models/product.model';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import ProductLinkModel, { IProductLink } from '../models/product-link.model';
 
 const MAX_TRIES = 3;
 const { crawlSites, sitesConfig } = require('../config/sites.config');
 
-const getProductUrlsFromSite = async (siteKey: string): Promise<boolean> => {
+const getProductUrlsFromSite = async (siteKey: string): Promise<Types.ObjectId | null> => {
     logger.info('Starting to scrape sitemaps for site: ' + siteKey);
     if (!crawlSites.includes(siteKey)) {
-        return false;
+        return null;
     }
 
     const siteObj = sitesConfig[siteKey];
     const sitemapUrls = siteObj.productSitemap?.urls;
     if (!sitemapUrls) {
-        return false;
+        return null;
     }
 
     const sitemapSelector = siteObj.productSitemap?.selector;
-    await scrapeSitemaps(sitemapUrls, siteKey, sitemapSelector);
+    const storeSitemapId = await scrapeSitemaps(sitemapUrls, siteKey, sitemapSelector);
     logger.info('Finished scraping sitemaps for site: ' + siteKey);
-    return true;
+    return storeSitemapId;
 }
 const getAllProductUrlsFromSites = async (): Promise<any[]> => {
     const promises = [] as Promise<void>[];
@@ -46,13 +46,19 @@ const getAllProductUrlsFromSites = async (): Promise<any[]> => {
     return validSites;
 }
 
-const scrapeProducts = async (siteKeys: string[]): Promise<void> => {
+const scrapeProducts = async (siteKeys: string[], storeSitemapId:  Types.ObjectId | null = null): Promise<void> => {
     let sitePromises = [] as Promise<void>[];
     for (const siteKey of siteKeys) {
         const siteObj = sitesConfig[siteKey];
         const sitePromise = new Promise<void>(async (resolve) => {
             let allProductsFinished = false;
-            const storeSitemap = await StoreSitemapModel.findOne({ site: siteKey, scrapingDone: false });
+
+            let storeSitemapFilter = { site: siteKey, scrapingDone: false, _id: storeSitemapId } as any;
+            if (!storeSitemapId) {
+                storeSitemapFilter = { site: siteKey, scrapingDone: false };
+            }
+
+            const storeSitemap = await StoreSitemapModel.findOne(storeSitemapFilter);
             if (!storeSitemap) {
                 logger.info(`Finished scraping products for ${siteObj.name}`);
                 allProductsFinished = true;
@@ -86,7 +92,7 @@ const scrapeProduct = async (productLink: HydratedDocument<IProductLink>, storeS
 
     try {
         if (!data) {
-            logger.error(`Failed to get product data from ${url}`);
+            logger.warn(`Failed to get product data from ${url}`);
             productLink.scrapingFailed = true;
         } else {
             const productData = await siteObj.service.processProductData(data, siteObj, siteObj.name, url);
@@ -122,7 +128,7 @@ const scrapeProduct = async (productLink: HydratedDocument<IProductLink>, storeS
     await requestDelayPromise;
 }
 
-async function scrapeSitemaps(urls: string[], siteKey: string, selector: string): Promise<void> {
+async function scrapeSitemaps(urls: string[], siteKey: string, selector: string): Promise<Types.ObjectId | null> {
     let allProductUrls = [] as string[];
 
     const storeSitemap = new StoreSitemap({
@@ -161,12 +167,22 @@ async function scrapeSitemaps(urls: string[], siteKey: string, selector: string)
     logger.info(`Found ${allProductUrls.length} product urls for ${siteKey} in ${urls.length} sitemaps`)
     storeSitemap.totalProducts = allProductUrls.length;
     storeSitemap.notScrapedProductsLeft = allProductUrls.length;
-    await storeSitemap.save();
+    try {
+        await storeSitemap.save();
+        return storeSitemap._id;
+    } catch (error) {
+        logger.error(`Failed to save store sitemap for ${siteKey}`);
+        return null;
+    }
 }
 
 const isAlreadyScraping = async (siteKey: string): Promise<boolean> => {
     const sitemap = await StoreSitemapModel.findOne({ site: siteKey, scrapingDone: false });
     return !!sitemap;
+}
+
+const getUnfinishedSitemaps = async (siteKey: string): Promise<HydratedDocument<IStoreSitemap>[]> => {
+    return StoreSitemapModel.find({site: siteKey, scrapingDone: false}).lean();
 }
 
 const tryRequest = async (url: string): Promise<any> => {
@@ -199,5 +215,6 @@ module.exports = {
     getProductUrlsFromSite,
     getAllProductUrlsFromSites,
     scrapeProducts,
-    isAlreadyScraping
+    isAlreadyScraping,
+    getUnfinishedSitemaps
 }

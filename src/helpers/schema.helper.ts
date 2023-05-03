@@ -6,13 +6,15 @@ const scrapeMicrodata = (product: Cheerio): ProductMicrodata => {
     const image = product.find('[itemprop="image"]').attr('src');
     const currency = product.find('[itemprop="priceCurrency"]').attr('content');
     const available = product.find('[itemprop="availability"]').attr('href') === 'http://schema.org/InStock';
+    const description = product.find('[itemprop="description"]').text();
 
     return {
         name,
         price,
         image,
         currency,
-        available
+        available,
+        description
     }
 }
 

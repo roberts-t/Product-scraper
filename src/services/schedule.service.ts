@@ -6,25 +6,32 @@ import logger from '../helpers/logger.helper';
 
 const scheduleSitesCrawl = async () => {
     const { crawlSites, sitesConfig } = require('../config/sites.config');
-    const unfinishedCrawls = [] as string[];
+    const unfinishedCrawls = [];
 
     for (const siteKey of crawlSites) {
         const siteObj = sitesConfig[siteKey];
         const siteSchedule = siteObj?.productSitemap?.schedule;
         if (siteSchedule) {
             const crawlingLeftUnfinished = await crawlerService.isAlreadyScraping(siteKey);
-            console.log('crawlingLeftUnfinished: ' + crawlingLeftUnfinished + ' for site: ' + siteKey);
 
             if (crawlingLeftUnfinished) {
-                unfinishedCrawls.push(siteKey);
+                const unfinishedSitemaps = await crawlerService.getUnfinishedSitemaps(siteKey);
+                for (const sitemap of unfinishedSitemaps) {
+                    unfinishedCrawls.push({
+                        site: siteKey,
+                        storeSitemapId: sitemap._id
+                    });
+                }
             }
 
             const job = schedule.scheduleJob({rule: siteSchedule, tz: 'Europe/Riga'}, async () => {
-                console.log('Starting scheduled crawl for site: ' + siteKey);
+                logger.info('Starting scheduled crawl for site: ' + siteKey);
                 const isScraping = await crawlerService.isAlreadyScraping(siteKey);
                 if (!isScraping) {
-                    await crawlerService.getProductUrlsFromSite(siteKey);
-                    await crawlerService.scrapeProducts([siteKey]);
+                    const storeSitemapId = await crawlerService.getProductUrlsFromSite(siteKey);
+                    if (storeSitemapId) {
+                        await crawlerService.scrapeProducts([siteKey], storeSitemapId);
+                    }
                 } else {
                     logger.warn('Crawling for site ' + siteKey + ' is already in progress. Skipping scheduled crawl.');
                 }
@@ -34,8 +41,11 @@ const scheduleSitesCrawl = async () => {
     }
 
     if (unfinishedCrawls.length > 0) {
-        logger.info('Continuing unfinished crawling for sites: ' + unfinishedCrawls.join(', '));
-        await crawlerService.scrapeProducts(unfinishedCrawls);
+        logger.info('Continuing unfinished crawling for sites: ' + unfinishedCrawls.map((crawl: any) => crawl.site).join(', '));
+        for (const crawl of unfinishedCrawls) {
+            const { site, storeSitemapId } = crawl;
+            crawlerService.scrapeProducts([site], storeSitemapId).then();
+        }
     } else {
         const sitemaps = await StoreSitemapModel.find({});
         if (sitemaps.length === 0) {
