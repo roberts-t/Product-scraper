@@ -11,7 +11,7 @@ module.exports = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const decoded = jwt.verify(token, process.env.SECRET_TOKEN);
         const userId = decoded.id;
-        const isAdmin = await AccessTokenModel.findOne({ userId: userId, isAdmin: true });
+        const isAdmin = await AccessTokenModel.findOne({ _id: userId, isAdmin: true });
         if (!isAdmin) {
             return res.status(401).json({ errorMsg: 'RESTRICTED' });
         } else {
