@@ -224,7 +224,7 @@ const sitesConfig = {
             name: '.title h1',
             amount: '.title span',
             available: 'div.price .discount',
-            price: '.price p',
+            price: '.price .col:nth-child(1) p',
             dealDuration: '.period .dates span',
             image: '.product-pic-wrapper img',
             imageData: 'src'
