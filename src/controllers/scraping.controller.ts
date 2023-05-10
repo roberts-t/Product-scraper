@@ -82,7 +82,7 @@ const getScrapingResults = async (req: Request, res: Response) => {
                         '$search': {
                             'index': 'product-index',
                             'text': {
-                                'query': 'ben & jerry',
+                                'query': query,
                                 'path': 'name',
                                 'fuzzy': {
                                     'maxExpansions': 10
