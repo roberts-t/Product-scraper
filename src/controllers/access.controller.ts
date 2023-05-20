@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const getAccess = async (req: any, res: any): Promise<void> => {
     const token = req.body?.token;
     if (!token) {
+        logger.request(`${req.method} ${req.url}, ip: ${req.ip}, user-agent: ${req.headers['user-agent']}, success: false`);
         return res.status(400).json({ errorCode: 'INVALID_REQUEST' });
     }
 
@@ -16,6 +17,7 @@ const getAccess = async (req: any, res: any): Promise<void> => {
 
         for (const availableAccessToken of availableAccessTokens) {
             const isMatch = await bcrypt.compare(token, availableAccessToken.token);
+            logger.request(`${req.method} ${req.url}, ip: ${req.ip}, user-agent: ${req.headers['user-agent']}, success: ${isMatch}`);
             if (isMatch) {
                 const jwt_token = jwt.sign(
                     {id: availableAccessToken._id},
@@ -47,12 +49,14 @@ const refreshAccess = async (req: any, res: any): Promise<void> => {
     // Get refresh token from cookie
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
+        logger.request(`${req.method} ${req.url}, ip: ${req.ip}, user-agent: ${req.headers['user-agent']}, success: false`);
         return res.status(400).json({ errorCode: 'INCORRECT_TOKEN' });
     }
 
     try{
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
         const refreshTokenDb = await RefreshToken.findOne({ accessBy: decoded.id });
+        logger.request(`${req.method} ${req.url}, ip: ${req.ip}, user-agent: ${req.headers['user-agent']}, success: ${!!refreshTokenDb}`);
         if (!refreshTokenDb) {
             return res.status(400).json({ errorCode: 'INCORRECT_TOKEN' });
         }
@@ -83,6 +87,7 @@ const updateRefreshToken = async (accessId: Types.ObjectId, newRefreshToken: str
 const logout = async (req: any, res: any): Promise<void> => {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
+        logger.request(`${req.method} ${req.url}, ip: ${req.ip}, user-agent: ${req.headers['user-agent']}, success: false`);
         return res.sendStatus(401);
     }
 
@@ -90,6 +95,7 @@ const logout = async (req: any, res: any): Promise<void> => {
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
         await RefreshToken.deleteOne({ accessBy: decoded.id });
         res.clearCookie('refreshToken');
+        logger.request(`${req.method} ${req.url}, ip: ${req.ip}, user-agent: ${req.headers['user-agent']}, success: true`);
         return res.sendStatus(200);
     } catch (e) {
         return res.sendStatus(500);

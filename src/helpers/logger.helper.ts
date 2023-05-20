@@ -5,7 +5,8 @@ const levels = {
     error: 0,
     warn: 1,
     info: 2,
-    debug: 3,
+    request: 3,
+    debug: 4,
 };
 
 const colors = {
@@ -13,6 +14,7 @@ const colors = {
     warn: 'yellow',
     info: 'green',
     debug: 'white',
+    request: 'blue',
 };
 
 const level = () => {
@@ -48,6 +50,7 @@ const prodTransports = [
         db: process.env.MONGO_URI,
         collection: 'logs',
         decolorize: true,
+        level: 'request',
         handleExceptions: true,
         // Expire logs after 3 days
         expireAfterSeconds: 3 * 24 * 60 * 60,

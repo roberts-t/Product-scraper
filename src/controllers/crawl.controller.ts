@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 const crawlerService = require('../services/crawler.service');
+import logger from '../helpers/logger.helper';
+
 
 const forceCrawl = async (req: Request, res: Response) => {
     const sites = req.body.sites;
+    logger.warn(`Force crawl request from ${req.ip}, sites: ${sites}`);
 
     if (!sites) {
         return res.status(400).json({ errorMsg: 'INVALID_REQUEST' });

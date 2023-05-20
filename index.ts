@@ -22,7 +22,21 @@ app.use(cors({
     origin: process.env.ORIGIN,
     optionsSuccessStatus: 200,
     credentials: true,
+    exposedHeaders: ['Ratelimit-Reset']
 }));
+
+app.use((req, res, next)=> {
+    try {
+        // Don't log access requests and image requests
+        if (req.url.includes('/api/access') || req.url.includes('/images')) {
+            return next();
+        }
+        logger.request(`${req.method} ${req.url}, body: ${JSON.stringify(req.body)}, ip: ${req.ip}, user-agent: ${req.get('User-Agent')}`);
+    } catch (err) {
+        logger.error(`Failed to log request ${req?.method} ${req?.url}, ip: ${req?.ip}, error: ${err}`);
+    }
+    next();
+})
 
 app.use(express.static('public'));
 
@@ -40,6 +54,9 @@ if (process.env.NODE_ENV != "DEV") {
         });
     });
 }
+
+if (process.env.NODE_ENV !== "DEV")
+    app.set("trust proxy", "loopback");
 
 app.listen(port, async () => {
     logger.info(`Server is running on PORT ${port}, ENV: ${process.env.NODE_ENV}`);

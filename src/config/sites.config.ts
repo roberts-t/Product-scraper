@@ -17,7 +17,7 @@ const sitesConfig = {
         urlName: 'Rimi.lv',
         logo: 'rimi.png',
         url: 'https://www.rimi.lv/e-veikals/lv',
-        getUrl: (query: string) => `https://www.rimi.lv/e-veikals/lv/meklesana?page=1&pageSize=10&query=${query}`,
+        getUrl: (query: string) => `https://www.rimi.lv/e-veikals/lv/meklesana?page=1&pageSize=20&query=${query}`,
         selectors: {
             productElemSelector: '.product-grid__item div.card',
             dataAttr: 'gtm-eec-product',
@@ -90,7 +90,7 @@ const sitesConfig = {
         urlName: 'NuKo.lv',
         logo: 'nuko.png',
         url: 'https://www.nuko.lv/lv/',
-        getUrl: (query: string) => `https://nuko.lv/lv/catalogsearch/result/index/?product_list_limit=12&q=${query}`,
+        getUrl: (query: string) => `https://nuko.lv/lv/catalogsearch/result/index/?product_list_limit=20&q=${query}`,
         selectors: {
             productElemSelector: 'div.product-item-info',
             url: 'a.product-item-photo',
@@ -128,7 +128,7 @@ const sitesConfig = {
         urlName: 'eTop.lv',
         logo: 'top.png',
         url: 'https://etop.lv/',
-        getUrl: (query: string) => `https://etop.lv/index.php?route=product/search&search=${query}&limit=10`,
+        getUrl: (query: string) => `https://etop.lv/index.php?route=product/search&search=${query}&limit=25`,
         selectors: {
             productElemSelector: 'div.product-thumb',
             url: 'div.product-name a',

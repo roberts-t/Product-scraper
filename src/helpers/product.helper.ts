@@ -40,20 +40,26 @@ export const getDefaultSortedProducts = (products: any, query: string) => {
         keys: ['name'],
         includeScore: true,
         isCaseSensitive: false,
-        threshold: 1,
+        ignoreFieldNorm: true,
+        ignoreLocation: true,
+        threshold: 1.0,
     };
 
     const fuse = new Fuse(products, fuseOptions);
     const results = fuse.search(query);
 
-    const scoreWeight = 0.9;
-    const priceWeight = 1;
+    const scoreWeight = 1;
+    const priceWeight = 0.1;
+    const exactMatchWeight = 0.5;
 
     results.sort((a: any, b: any) => {
+        const exactMatchA = a.item.name.toLowerCase().includes(query.toLowerCase());
+        const exactMatchB = b.item.name.toLowerCase().includes(query.toLowerCase());
+
         // Calculate the total score for each product
         // Higher score is better which means the product is a better match for the query and cheaper
-        const scoreA = ((1 - a.score) * scoreWeight) + ((1 / a.item.price) * priceWeight);
-        const scoreB = ((1 - b.score) * scoreWeight) + ((1 / b.item.price) * priceWeight);
+        const scoreA = ((1 - a.score) * scoreWeight) + ((1 / a.item.price) * priceWeight) + (exactMatchA ? exactMatchWeight : 0);
+        const scoreB = ((1 - b.score) * scoreWeight) + ((1 / b.item.price) * priceWeight) + (exactMatchB ? exactMatchWeight : 0);
 
         // Compare the total scores
         if (scoreB > scoreA) {
