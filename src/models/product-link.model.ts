@@ -37,7 +37,6 @@ const ProductLinkSchema = new Schema<IProductLink>({
     expireAt: {
         type: Date,
         expires: '8d',
-        default: new Date(),
     }
 });
 
